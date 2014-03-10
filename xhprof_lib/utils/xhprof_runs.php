@@ -119,9 +119,43 @@ class XHProfRuns_Default implements iXHProfRuns {
 
     $contents = file_get_contents($file_name);
     $run_desc = "XHProf Run (Namespace=$type)";
+    
+    $ainfo = $this->get_server_info($type, $run_id);
+    if(array_key_exists('REQUEST_URI', $ainfo)) {
+    	$run_desc .= ' ' . $ainfo['REQUEST_URI'];
+    }
     return unserialize($contents);
   }
 
+  private function save_server_info($type, $run_id) {
+  	
+  	$file_name = "$run_id.$type.server";
+  	if (!empty($this->dir)) {
+  		$file_name = $this->dir . "/" . $file_name;
+  	}
+  	$file = fopen($file_name, 'w');
+  	if ($file) {
+  		fwrite($file, serialize($_SERVER));
+  		fclose($file);
+  	} else {
+  		xhprof_error("Could not open $file_name\n");
+  	}
+  }
+  
+  public function get_server_info($type, $run_id) {
+	$ret = array();
+	
+	$file_name = "$run_id.$type.server";
+	if (!empty($this->dir)) {
+		$file_name = $this->dir . "/" . $file_name;
+	}
+	if (file_exists($file_name)) {
+		$content = file_get_contents($file_name);
+		$ret = unserialize($content);
+	}
+  	return $ret;
+  }
+  
   public function save_run($xhprof_data, $type, $run_id = null) {
 
     // Use PHP serialize function to store the XHProf's
@@ -141,6 +175,8 @@ class XHProfRuns_Default implements iXHProfRuns {
     } else {
       xhprof_error("Could not open $file_name\n");
     }
+    
+    $this->save_server_info($type, $run_id);
 
     // echo "Saved run in {$file_name}.\nRun id = {$run_id}.\n";
     return $run_id;

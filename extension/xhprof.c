@@ -1700,7 +1700,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   if (func) {
     BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
   }
-
+#if PHP_VERSION_ID >= 50500
+  execute_internal(execute_data, fci, ret TSRMLS_CC);
+#else
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
     zend_op *opline = EX(opline);
@@ -1722,12 +1724,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 #endif
   } else {
     /* call the old override */
-#if PHP_VERSION_ID < 50500
     _zend_execute_internal(execute_data, ret TSRMLS_CC);
-#else
-    _zend_execute_internal(execute_data, fci, ret TSRMLS_CC);
-#endif
   }
+#endif  
 
   if (func) {
     if (hp_globals.entries) {

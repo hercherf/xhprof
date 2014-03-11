@@ -4,4 +4,11 @@ For installation and usage notes refer to:
 To view the latest version of the doc, go to:
   http://pecl.php.net/package/xhprof ---> [View Documentation]
 
+## build:
+cd extension
+phpize
+./configure
+make
+make test
+(make install)
 
